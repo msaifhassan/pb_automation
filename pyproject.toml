@@ -1,0 +1,25 @@
+[tool.uv]
+# uv-specific settings can go here (leave project metadata under [project])
+
+
+[project]
+name = "pb_automation"
+version = "0.1.0"
+description = "Automation scripts to reserve pickleball courts using Playwright"
+requires-python = ">=3.11"
+# `authors` must be an array of tables (objects) per PEP 621
+authors = [
+	{ name = "msaifhassan", email = "msaifhassan@gmail.com" }
+]
+dependencies = [
+    "python-dotenv",
+    "playwright",
+]
+
+[project.scripts]
+run = "scripts.run:main"
+
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
