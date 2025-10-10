@@ -101,6 +101,11 @@ def main():
         
         result = run(page, reservation_date, duration="120 Min")
         
+        if not result:
+            # Try again with 90 min duration
+            print("Trying again with 90 min duration...")
+            result = run(page, reservation_date, duration="90 Min")
+        
         print(f"Result: {result}")
         
         page.get_by_role("button", name="Ok").click()
