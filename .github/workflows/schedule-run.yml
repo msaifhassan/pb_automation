@@ -14,29 +14,23 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-      - name: Setup Python
-        uses: astral-sh/setup-uv@v7.0
+      - uses: astral-sh/setup-uv@v7.0
 
-      - name: Sync dependencies
-        run: uv sync
+      - run: uv sync
 
-      # 4. Cache Playwright browsers for faster CI runs
-      - name: Restore Playwright browser cache
+      - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-v1
-          restore-keys: |
-            ${{ runner.os }}-playwright-
+          key: playwright-chromium
+          restore-keys: playwright-chromium
 
-      # 5. Install Chromium only if not cached
       - name: Install Playwright Chromium
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
         run: |
           if [ -z "$(ls -d ~/.cache/ms-playwright/chromium-* 2>/dev/null)" ]; then
             echo "Chromium not found — installing..."
