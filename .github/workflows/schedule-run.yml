@@ -24,15 +24,26 @@ jobs:
       - name: Sync dependencies
         run: uv sync
 
-      # for faster installs between runs
-      - name: Cache Playwright browsers
+      # 4. Cache Playwright browsers for faster CI runs
+      - name: Restore Playwright browser cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright
+          key: ${{ runner.os }}-playwright-chromium
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
-      - name: Install Playwright Chromium only
-        run: uv run playwright install chromium --with-deps
+      # 5. Install Chromium only if not cached
+      - name: Install Playwright Chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+        run: |
+          if [ ! -d ~/.cache/ms-playwright/chromium-* ]; then
+            echo "Chromium not found in cache — installing..."
+            uv run playwright install chromium --with-deps
+          else
+            echo "Chromium found in cache — skipping install."
+          fi
 
       - name: Run script
         env:
