@@ -4,7 +4,7 @@ on:
   schedule:
     # This cron runs every day at 11:58 UTC (which is 6:58 AM CDT / 6:58 AM CST)
     # We'll use sleep to adjust for the seconds
-    - cron: "58 11 * * *"
+    - cron: "57 11 * * *"
   workflow_dispatch: {}  # optional manual trigger
   push:
     branches:
@@ -19,19 +19,23 @@ jobs:
       PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
 
     steps:
-      # 1️⃣ Checkout code
+
+      - name: Wait to match exact seconds
+        run: sleep 30  # wait 30 seconds → approximate 6:57:30 AM Chicago time (job takes 2m 25s to run on average)
+
+      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v5
 
-      # 2️⃣ Setup Python & UV
+      # Setup Python & UV
       - name: Setup Python
         uses: astral-sh/setup-uv@v7.0
 
-      # 3️⃣ Sync dependencies
+      # Sync dependencies
       - name: Sync dependencies
         run: uv sync
 
-      # 4️⃣ Restore Playwright browser cache
+      # Restore Playwright browser cache
       - name: Restore Playwright browser cache
         uses: actions/cache@v4
         with:
@@ -39,7 +43,7 @@ jobs:
           key: playwright-chromium
           restore-keys: playwright-chromium
 
-      # 5️⃣ Install Chromium only if not cached
+      # Install Chromium only if not cached
       - name: Install Playwright Chromium
         run: |
           if [ -z "$(ls -d ~/.cache/ms-playwright/chromium-* 2>/dev/null)" ]; then
@@ -49,7 +53,7 @@ jobs:
             echo "Chromium found — skipping install."
           fi
 
-      # 6️⃣ Run the script
+      # Run the script
       - name: Run script
         env:
           PB_USERNAME: msaifhassan@gmail.com
