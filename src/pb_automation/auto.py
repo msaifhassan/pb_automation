@@ -1,6 +1,8 @@
 import re
 import os
 import dotenv
+import time
+from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from playwright.sync_api import Playwright, sync_playwright, expect
 dotenv.load_dotenv()
@@ -14,17 +16,24 @@ def get_date():
     next_week = today + timedelta(weeks=1)
     return next_week.strftime("%m/%d/%Y")
 
-messages = []
-reservation_date = get_date()
-
 def log(message: str):
     print(message)
     messages.append(message)
+    
+    
+messages = []
+reservation_date = get_date()
+test_mode = True if os.getenv("TEST_MODE", "false").lower() == "true" else False
+log(f"Test mode is {'on' if test_mode else 'off'}.")
+
 
 
 def login(playwright, username: str, password: str) -> tuple:
     """Logs into the club automation website and returns the page object."""
-    browser = playwright.chromium.launch(headless=False)
+    
+    headless = not test_mode # when test_mode is True, headless is False (i.e., show the browser)
+    log(f"Running in headless mode: {headless}")
+    browser = playwright.chromium.launch(headless=headless)
     context = browser.new_context()
     page = context.new_page()
     page.goto("https://centrecourt.clubautomation.com/")
@@ -85,6 +94,7 @@ def get_slot(page, preferred_times) -> bool:
         except:
             if unsuccessful_results(page):
                 return False
+            log(f"Time slot {time} not available, trying next preferred time...")
             continue
     return False
 
@@ -145,15 +155,31 @@ def send_email(messages: list, result: bool):
         print("Email sent successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
+        
+        
+def after_7am_wait():
+    """Wait until 7am CST to proceed."""
+    if test_mode:
+        log("Test mode is on, skipping wait until 7am CST.")
+        return
+    
+    while True:
+        now = datetime.now(ZoneInfo("America/Chicago"))
+        if now.hour >= 7:
+            log("It's now after 7am CST, proceeding with reservation...")
+            break
+        else:
+            log(f"Current CST time: {now.strftime('%Y-%m-%d %H:%M:%S')}. Waiting until 7am CST...")
+            time.sleep(.25)
 
 def main():
     with sync_playwright() as playwright:
         log("Starting the reservation process...")
         log(f"Reservation Date: {reservation_date}")
         page, context, browser = login(playwright, os.getenv("PB_USERNAME"), os.getenv("PB_PASSWORD"))
-        
+        after_7am_wait()
+                
         result = run(page, reservation_date, duration="120 Min")
-        
         if not result:
             # Try again with 90 min duration
             message = "Trying again with 90 min duration..."
