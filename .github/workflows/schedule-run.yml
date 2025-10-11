@@ -4,7 +4,7 @@ on:
   schedule:
     # This cron runs every day at 11:58 UTC (which is 6:58 AM CDT / 6:58 AM CST)
     # We'll use sleep to adjust for the seconds
-    - cron: "59 11 * * *"
+    - cron: "58 11 * * *"
   workflow_dispatch: {}  # optional manual trigger
   push:
     branches:
