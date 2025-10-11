@@ -32,7 +32,7 @@ jobs:
           SENDER_EMAIL: msaifhassan@gmail.com
           RECEIVER_EMAIL: msaifhassan@gmail.com
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          TEST_MODE: true
+          TEST_MODE: false
         run: |
           uv sync
           uv run python src/pb_automation/auto.py
