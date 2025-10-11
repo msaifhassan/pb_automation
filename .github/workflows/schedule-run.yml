@@ -1,0 +1,39 @@
+name: scheduled-python-job
+
+on:
+  push:
+    branches:
+      - main
+
+# on:
+#   schedule:
+#     # cron is UTC. change to CST TIMEZONE
+#     - cron: "0 12 * * *"   # every day at 12:00 UTC
+#   workflow_dispatch: {}     # optional: add a manual "Run workflow" button
+
+jobs:
+  run-script:
+    runs-on: ghcr.io/astral-sh/uv:debian
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # - name: Setup Python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          uv sync
+
+      - name: Run script
+        env:
+          PB_USERNAME: msaifhassan@gmail.com
+          PB_PASSWORD: ${{ secrets.PB_PASSWORD }}
+          SENDER_EMAIL: msaifhassan@gmail.com
+          RECEIVER_EMAIL: msaifhassan@gmail.com
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          TEST_MODE: true
+        run: |
+          uv run python src/pb_automation/auto.py
