@@ -21,9 +21,18 @@ jobs:
       - name: Setup Python
         uses: astral-sh/setup-uv@v7.0
 
-      # - name: Install dependencies
-      #   run: |
-      #     uv sync
+      # for faster installs between runs
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright
+
+      - name: Sync dependencies
+        run: uv sync
+
+      - name: Install Playwright browsers
+        run: uv run playwright install --with-deps
 
       - name: Run script
         env:
@@ -34,5 +43,4 @@ jobs:
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           TEST_MODE: false
         run: |
-          uv sync
           uv run python src/pb_automation/auto.py
