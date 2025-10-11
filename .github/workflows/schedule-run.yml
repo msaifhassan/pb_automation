@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium
+          key: ${{ runner.os }}-playwright-chromium-v1
           restore-keys: |
             ${{ runner.os }}-playwright-
 
@@ -38,11 +38,11 @@ jobs:
         env:
           PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
         run: |
-          if [ ! -d ~/.cache/ms-playwright/chromium-* ]; then
-            echo "Chromium not found in cache — installing..."
+          if [ -z "$(ls -d ~/.cache/ms-playwright/chromium-* 2>/dev/null)" ]; then
+            echo "Chromium not found — installing..."
             uv run playwright install chromium --with-deps
           else
-            echo "Chromium found in cache — skipping install."
+            echo "Chromium found — skipping install."
           fi
 
       - name: Run script
