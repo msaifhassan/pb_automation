@@ -34,4 +34,5 @@ jobs:
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           TEST_MODE: true
         run: |
+          uv sync
           uv run python src/pb_automation/auto.py
