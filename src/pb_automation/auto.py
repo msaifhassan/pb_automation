@@ -57,6 +57,10 @@ def verify_successful(page) -> False:
         return True
     except:
         log("Reservation failed: Confirm button not found. Either you have already booked or no slots available.")
+        try:
+            page.get_by_role("button", name="Ok").click()
+        except:
+            pass
         return False
     
     
