@@ -14,22 +14,33 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+
+    # Set PLAYWRIGHT_BROWSERS_PATH globally for all steps
     env:
       PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+
     steps:
-      - uses: actions/checkout@v5
+      # 1️⃣ Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - uses: astral-sh/setup-uv@v7.0
+      # 2️⃣ Setup Python & UV
+      - name: Setup Python
+        uses: astral-sh/setup-uv@v7.0
 
-      - run: uv sync
+      # 3️⃣ Sync dependencies
+      - name: Sync dependencies
+        run: uv sync
 
-      - name: Cache Playwright browsers
+      # 4️⃣ Restore Playwright browser cache
+      - name: Restore Playwright browser cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium
           restore-keys: playwright-chromium
 
+      # 5️⃣ Install Chromium only if not cached
       - name: Install Playwright Chromium
         run: |
           if [ -z "$(ls -d ~/.cache/ms-playwright/chromium-* 2>/dev/null)" ]; then
@@ -38,7 +49,8 @@ jobs:
           else
             echo "Chromium found — skipping install."
           fi
-
+          
+      # 6️⃣ Run the script
       - name: Run script
         env:
           PB_USERNAME: msaifhassan@gmail.com
