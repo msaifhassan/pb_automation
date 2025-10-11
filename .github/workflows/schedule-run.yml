@@ -1,15 +1,14 @@
-name: scheduled-python-job
+name: PB Automation Scheduled Run
 
 on:
+  schedule:
+    # This cron runs every day at 11:58 UTC (which is 6:58 AM CDT / 6:58 AM CST)
+    # We'll use sleep to adjust for the seconds
+    - cron: "59 11 * * *"
+  workflow_dispatch: {}  # optional manual trigger
   push:
     branches:
       - main
-
-# on:
-#   schedule:
-#     # cron is UTC. change to CST TIMEZONE
-#     - cron: "0 12 * * *"   # every day at 12:00 UTC
-#   workflow_dispatch: {}     # optional: add a manual "Run workflow" button
 
 jobs:
   run-script:
@@ -49,7 +48,7 @@ jobs:
           else
             echo "Chromium found — skipping install."
           fi
-          
+
       # 6️⃣ Run the script
       - name: Run script
         env:
