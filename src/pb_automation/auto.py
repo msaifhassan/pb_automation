@@ -6,6 +6,22 @@ from playwright.sync_api import Playwright, sync_playwright, expect
 dotenv.load_dotenv()
 
 
+def get_date():
+    """Returns the date string a week from today in the format mm/dd/yyyy.
+        Example: if today is tuesday, we pick next tuesday's date.
+    """
+    today = datetime.today()
+    next_week = today + timedelta(weeks=1)
+    return next_week.strftime("%m/%d/%Y")
+
+messages = []
+reservation_date = get_date()
+
+def log(message: str):
+    print(message)
+    messages.append(message)
+
+
 def login(playwright, username: str, password: str) -> tuple:
     """Logs into the club automation website and returns the page object."""
     browser = playwright.chromium.launch(headless=False)
@@ -20,24 +36,18 @@ def login(playwright, username: str, password: str) -> tuple:
     return page, context, browser
     
 
-def get_date():
-    """Returns the date string a week from today in the format mm/dd/yyyy.
-        Example: if today is tuesday, we pick next tuesday's date.
-    """
-    today = datetime.today()
-    next_week = today + timedelta(weeks=1)
-    return next_week.strftime("%m/%d/%Y")
-
 
 def verify_successful(page) -> False:
     """Check to see if Confirm button is visible, if so return True, else False."""
     try:
         expect(page.get_by_role("button", name="Confirm")).to_be_visible(timeout=2000)
         page.get_by_role("button", name="Confirm").click()
-        print("Reservation successful!")
+        log("Reservation successful!")
+        page.get_by_role("button", name="Ok").click()
+        page.get_by_role("link", name="Log Out").click()
         return True
     except:
-        print("Reservation failed: Confirm button not found. Either you have already booked or no slots available.")
+        log("Reservation failed: Confirm button not found. Either you have already booked or no slots available.")
         return False
     
     
@@ -56,14 +66,25 @@ def pick_time_slot(page) -> str:
     else:  # Saturday and Sunday are considered weekends
         result = get_slot(page, weekend_preferred_times)
     return result
+
+
+def unsuccessful_results(page) -> bool:
+    try:
+        expect(page.get_by_text("No available times based on your search criteria.")).to_be_visible(timeout=200)
+        log("No available times based on your search criteria.")
+        return True
+    except:
+        return False
     
 def get_slot(page, preferred_times) -> bool:
     for time in preferred_times:
         try:
-            page.get_by_role("link", name=time).click()
-            print(f"Successfully clicked on {time} time slot.")
+            page.get_by_role("link", name=time).click(timeout=1500)
+            log(f"Successfully clicked on {time} time slot.")
             return True
         except:
+            if unsuccessful_results(page):
+                return False
             continue
     return False
 
@@ -84,36 +105,69 @@ def run(page, reservation_date: str, duration: str = "120") -> None:
     page.get_by_text(duration).click()
     
     page.get_by_role("button", name="Search").click()
+
     got_res = pick_time_slot(page)
-    
     if not got_res:
-        print("No preferred time slots available.")
+        log("No preferred time slots available.")
         return False
     
     return verify_successful(page)
     
 
+def close_browser(browser, context):
+    context.close()
+    browser.close()
+    
+    
+def send_email(messages: list, result: bool):
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    sender_email = os.getenv("SENDER_EMAIL")
+    receiver_email = os.getenv("RECEIVER_EMAIL")
+    password = os.getenv("EMAIL_PASSWORD")
+
+    msg = MIMEMultipart("alternative")
+    res_msg = "Successful" if result else "Unsuccessful"
+    msg["Subject"] = f"Pickleball Reservation {res_msg}: {reservation_date}"
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+
+    text = "\n".join(messages)
+    part = MIMEText(text, "plain")
+    msg.attach(part)
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
 def main():
     with sync_playwright() as playwright:
-        reservation_date = get_date()
-        print(f"Reserving court for date: {reservation_date}")
+        log("Starting the reservation process...")
+        log(f"Reservation Date: {reservation_date}")
         page, context, browser = login(playwright, os.getenv("PB_USERNAME"), os.getenv("PB_PASSWORD"))
         
         result = run(page, reservation_date, duration="120 Min")
         
         if not result:
             # Try again with 90 min duration
-            print("Trying again with 90 min duration...")
+            message = "Trying again with 90 min duration..."
+            print(message)
+            messages.append(message)
+            
             result = run(page, reservation_date, duration="90 Min")
         
-        print(f"Result: {result}")
-        
-        page.get_by_role("button", name="Ok").click()
-        page.get_by_role("link", name="Log Out").click()
-        
+        print(f"Final Result: {result}")
+        messages.append(f"Final Result: {result}")
+            
         # ---------------------
-        context.close()
-        browser.close()
+        close_browser(browser, context)
+        send_email(messages, result)
     
 
 if __name__ == "__main__":
