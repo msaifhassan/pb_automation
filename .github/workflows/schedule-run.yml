@@ -2,7 +2,7 @@ name: PB Automation Scheduled Run
 
 on:
   schedule:
-    - cron: "56 11 * * *"
+    - cron: "45 11 * * *"
   workflow_dispatch: {}  # optional manual trigger
   push:
     branches:
@@ -17,10 +17,6 @@ jobs:
       PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
 
     steps:
-
-      - name: Wait to match exact seconds
-        run: sleep 30  # wait 30 seconds → approximate 6:56:30 AM Chicago time (job takes 3m 25s to run on average)
-
       # Checkout code
       - name: Checkout code
         uses: actions/checkout@v5
