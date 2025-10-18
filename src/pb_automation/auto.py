@@ -173,7 +173,7 @@ def after_7am_wait():
             log("It's now after 7am CST, proceeding with reservation...")
             break
         else:
-            log(f"Current CST time: {now.strftime('%Y-%m-%d %H:%M:%S')}. Waiting until 7am CST...")
+            print(f"Current CST time: {now.strftime('%Y-%m-%d %H:%M:%S')}. Waiting until 7am CST...")
             time.sleep(.25)
 
 def main():
