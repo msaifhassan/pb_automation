@@ -2,7 +2,7 @@ name: PB Automation Scheduled Run
 
 on:
   schedule:
-    - cron: "45 11 * * *"
+    - cron: "45 13 * * *"
   workflow_dispatch: {}  # optional manual trigger
   push:
     branches:
