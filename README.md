@@ -12,7 +12,7 @@ This project uses `uv` as the Python package/project manager. If you don't have 
 
 	For Windows PowerShell:
 
-	```powershell
+	```powershelll
 	python -m pip install --user uv
 	```
 
