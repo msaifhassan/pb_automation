@@ -2,7 +2,7 @@
 Reserve pickleball when it opens up
 
 ## Goal
-Build automated steps to reserve a court at centrecourt.clubautomation.com using Playwright (Python async).
+Build automated steps to reserve a court at centrecourt.clubautomation.com using Playwright (Python async)..
 
 ## Setup (recommended: uv)
 
